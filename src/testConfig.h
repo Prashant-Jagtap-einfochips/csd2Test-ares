@@ -7,15 +7,25 @@
 extern "C" {
 #endif
 
-#define MAX_TEST 16
+#define MAX_TEST 26
+#define MAX_COEFF_TEST 1
 
 typedef struct TestConfig
 {
-	uint32_t gainValue;
+	uint8_t  des[40];
+	uint32_t data;
 	uint32_t moduleTag;
 	uint32_t paramId;
 
 } testConfig;
+
+typedef struct TestCoeff
+{
+	uint8_t  des[40];
+	uint32_t moduleTag;
+	uint32_t paramId;
+
+} testCoeff;
 
 #ifdef __cplusplus
 }  /* extern "C" */

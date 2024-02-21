@@ -59,9 +59,11 @@ int main(int argc, char *argv[]) {
 
 
 	for (idx = 0; idx < MAX_TEST; idx++){
-		Test(CsdContext, idx, 10);
-		printf ("\n\n\n");
+		//Test(CsdContext, idx, 10);
+		//printf ("\n\n\n");
 	}
+
+	TestCoeff(CsdContext, 0, 10);
 
 #if 0
 	struct csd2_key_value kvp[5] = {

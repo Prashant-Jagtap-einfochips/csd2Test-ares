@@ -9,10 +9,14 @@ extern "C" {
 #define MODULE_TAG_DATA_MODULE               0xC0000020
 #define PARAM_ID_DATA_MODULE_MUTE            0x08001232
 #define PARAM_ID_DATA_MODULE_GAIN            0x08001175
+#define PARAM_ID_DATA_MODULE_ENABLE          0x08001026
+#define PARAM_ID_DATA_MODULE_COEFF           0x0800122E
 
 #define MODULE_TAG_CONTROL_MODULE            0xC0000021
 #define PARAM_ID_CONTROL_MODULE_MUTE         0x08001230
 #define PARAM_ID_CONTROL_MODULE_GAIN         0x08001176
+#define PARAM_ID_CONTROL_MODULE_ENABLE       0x08001020
+#define PARAM_ID_CONTROL_MODULE_COEFF        0x0800122F
 
 typedef struct CsdContext
 {
@@ -26,6 +30,8 @@ typedef struct CsdContext
 void initializeParamConfig(struct csd2_pp_param_config*, int);
 
 void Test(CSDA_Context, int, int);
+
+void TestCoeff(CSDA_Context, int, int);
 
 #ifdef __cplusplus
 }  /* extern "C" */
