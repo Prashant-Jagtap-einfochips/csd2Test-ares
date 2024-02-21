@@ -5,22 +5,25 @@
 extern "C" {
 #endif
 
-#define MODULE_TAG_CONTROL_MODULE       0xC0000020
-#define MODULE_TAG_DATA_MODULE          0xC0000020
 
-#define PARAM_ID_CONTROL_MODULE         0x08001232
-#define PARAM_ID_DATA_MODULE            0x08001176
+#define MODULE_TAG_DATA_MODULE               0xC0000020
+#define PARAM_ID_DATA_MODULE_MUTE            0x08001232
+#define PARAM_ID_DATA_MODULE_GAIN            0x08001175
+
+#define MODULE_TAG_CONTROL_MODULE            0xC0000021
+#define PARAM_ID_CONTROL_MODULE_MUTE         0x08001230
+#define PARAM_ID_CONTROL_MODULE_GAIN         0x08001176
 
 typedef struct CsdContext
 {
     //CSDA_Cfg* params;
 	// Module Tag of the Module under test.
-    const uint32_t dstId = MODULE_TAG_CONTROL_MODULE;
+    const uint32_t dstId; // = MODULE_TAG_CONTROL_MODULE;
 
     uint32_t handle;
 } CSDA_Context;
 
-void initializeParamConfig(struct csd2_pp_param_config, int);
+void initializeParamConfig(struct csd2_pp_param_config*, int);
 
 void Test(CSDA_Context, int, int);
 

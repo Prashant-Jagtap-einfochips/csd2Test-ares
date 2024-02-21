@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define MAX_TEST 5
+#define MAX_TEST 16
 
 typedef struct TestConfig
 {

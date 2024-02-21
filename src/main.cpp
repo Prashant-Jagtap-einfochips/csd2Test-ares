@@ -28,10 +28,11 @@ int main(int argc, char *argv[]) {
 
 	uint32_t value = 0;
 
-	int32_t retVal;//, idx;
+	int32_t retVal, idx;
 
-	CSDA_Context CsdContext;
+	CSDA_Context CsdContext{};
 
+#if 0
 	if (argc != 2) {
 		printf("Please provide exactly one integer argument.\n");
 		return 1;
@@ -39,6 +40,7 @@ int main(int argc, char *argv[]) {
 
 	int gain = atoi(argv[1]);
 	printf("The integer value entered is: %d\n", gain);
+#endif
 
 	if (CSD2_EOK != (value = csd2_init(&init_param)))
 	{
@@ -56,13 +58,12 @@ int main(int argc, char *argv[]) {
 	}
 
 
-#if 0
-	for (idx = 0; idx < 1; idx++){
-		Test(CsdContext, idx, delay);
+	for (idx = 0; idx < MAX_TEST; idx++){
+		Test(CsdContext, idx, 10);
 		printf ("\n\n\n");
 	}
-#endif
 
+#if 0
 	struct csd2_key_value kvp[5] = {
 				{STREAMRX, PCM_DEEP_BUFFER},
 				{INSTANCE, INSTANCE_1},
@@ -118,6 +119,7 @@ int main(int argc, char *argv[]) {
 		printf(" param_cfg.u.tagged_param.param_id is : %x \n", param_cfg.u.tagged_param.param_id);
 		printf(" param_cfg.u.tagged_param.data_sz is : %x \n", param_cfg.u.tagged_param.data_sz);
 	}
+#endif
 
 	csd2_close(CsdContext.handle);
 	csd2_deinit();
