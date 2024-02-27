@@ -12,7 +12,7 @@ extern "C" {
 
 typedef struct TestConfig
 {
-	uint8_t  des[40];
+	uint8_t  des[50];
 	uint32_t data;
 	uint32_t moduleTag;
 	uint32_t paramId;
@@ -21,7 +21,7 @@ typedef struct TestConfig
 
 typedef struct TestCoeff
 {
-	uint8_t  des[40];
+	uint8_t  des[50];
 	uint32_t moduleTag;
 	uint32_t paramId;
 

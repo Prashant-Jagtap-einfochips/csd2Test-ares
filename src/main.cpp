@@ -58,10 +58,12 @@ int main(int argc, char *argv[]) {
 	}
 
 
+#if 0
 	for (idx = 0; idx < MAX_TEST; idx++){
-		//Test(CsdContext, idx, 10);
-		//printf ("\n\n\n");
+		Test(CsdContext, idx, 10);
+		printf ("\n\n\n");
 	}
+#endif
 
 	TestCoeff(CsdContext, 0, 10);
 

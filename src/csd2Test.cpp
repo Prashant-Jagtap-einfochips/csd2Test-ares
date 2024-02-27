@@ -221,6 +221,8 @@ void initializeParamConfig(struct csd2_pp_param_config *param_cfg, int index) {
 
 void Test(CSDA_Context CsdContext, int index, int delay){
 
+	uint32_t value = 0;
+
 	struct csd2_pp_param_config param_cfg = {0};
 
 	uint32_t param_payload = tconfig[index].data;
@@ -259,9 +261,9 @@ void Test(CSDA_Context CsdContext, int index, int delay){
 
 	sleep(delay);
 
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg)))
+	if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
 	{
-		printf(" Request csd2_ioctl PP_CONTROL_SET failed.\n");
+		printf(" Request csd2_ioctl PP_CONTROL_SET failed %d\n", value);
 	}
 	else{
 		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_SET Successful.\n");
@@ -270,12 +272,12 @@ void Test(CSDA_Context CsdContext, int index, int delay){
 
 	sleep(delay);
 
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle,
+	if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle,
 								   CSD2_CMD_PP_CONTROL_GET,
 								   &param_cfg,
-								   sizeof(param_cfg)))
+								   sizeof(param_cfg))))
 	{
-		printf(" Request csd2_ioctl PP_CONTROL_GET failed.\n");
+		printf(" Request csd2_ioctl PP_CONTROL_GET failed %d\n", value);
 	}
 	else{
 		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_GET Successful.\n");
@@ -293,19 +295,21 @@ void Test(CSDA_Context CsdContext, int index, int delay){
 
 void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 
+	uint32_t value = 0;
 	struct csd2_pp_param_config param_cfg = {0};
-#if 0
+#if 1
 	uint8_t* param_payload = 0;
 
-	param_payload = (uint8_t*)malloc(4096);
+	param_payload = (uint8_t*)malloc(DATA_SIZE);
 	if(NULL == param_payload) {
 		printf("NOt able to allocate space for param_payload\n");
 		return;
 	}
 
-	memset(param_payload, 0x7F, 4096);
+	memset(param_payload, 0x7F, DATA_SIZE);
+#else
+	uint32_t param_payload = 0x7F;
 #endif
-	uint8_t param_payload = 0x7F;
 
 	printf(" Configuration: %s\n", tcoeff[index].des);
 	//printf(" param_payload is : 0x%x \n", param_payload);
@@ -333,17 +337,17 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 	param_cfg.u.tagged_param.param_id = tcoeff[index].paramId;
 	printf(" param_cfg.u.tagged_param.param_id is : 0x%x \n", param_cfg.u.tagged_param.param_id);
 
-	param_cfg.u.tagged_param.data = &param_payload;
+	param_cfg.u.tagged_param.data = (void *)param_payload;
 
-	param_cfg.u.tagged_param.data_sz = 1 + 4;
+	param_cfg.u.tagged_param.data_sz = DATA_SIZE;
 
 	printf("\n\n********************** Test %d Start *****************************\n\n", index);
 
 	sleep(delay);
 
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg)))
+	if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
 	{
-		printf(" Request csd2_ioctl PP_CONTROL_SET failed.\n");
+		printf(" Request csd2_ioctl PP_CONTROL_SET failed. %d\n", value);
 	}
 	else{
 		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_SET Successful.\n");
@@ -351,14 +355,14 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 	}
 
 	sleep(delay);
-	param_cfg.u.tagged_param.data_sz = 0;
+	param_cfg.u.tagged_param.data_sz = DATA_SIZE;
 
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle,
+	if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle,
 								   CSD2_CMD_PP_CONTROL_GET,
 								   &param_cfg,
-								   sizeof(param_cfg)))
+								   sizeof(param_cfg))))
 	{
-		printf(" Request csd2_ioctl PP_CONTROL_GET failed.\n");
+		printf(" Request csd2_ioctl PP_CONTROL_GET failed. %d\n", value);
 	}
 	else{
 		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_GET Successful.\n");
@@ -366,12 +370,12 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 		printf(" param_cfg.tag is : %x \n", param_cfg.tag);
 		printf(" param_cfg.is_persist is : %x \n", param_cfg.is_persist);
 		printf(" param_cfg.mode is : %x \n", param_cfg.mode);
-		printf(" param_cfg.u.tagged_param.data is : %d \n", (int*)(param_cfg.u.tagged_param.data));
+		printf(" param_cfg.u.tagged_param.data is : %d \n", *((uint8_t*)param_cfg.u.tagged_param.data));
 		printf(" param_cfg.u.tagged_param.param_id is : %x \n", param_cfg.u.tagged_param.param_id);
 		printf(" param_cfg.u.tagged_param.data_sz is : %x \n", param_cfg.u.tagged_param.data_sz);
 	}
 
 	printf("\n\n********************** Test %d End *****************************\n\n", index);
 
-	//free(param_payload);
+	free(param_payload);
 }

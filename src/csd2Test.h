@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#define DATA_SIZE                            2048
 
 #define MODULE_TAG_DATA_MODULE               0xC0000020
 #define PARAM_ID_DATA_MODULE_MUTE            0x08001232
