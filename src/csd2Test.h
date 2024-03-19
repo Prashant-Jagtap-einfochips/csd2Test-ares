@@ -30,9 +30,13 @@ typedef struct CsdContext
 
 void initializeParamConfig(struct csd2_pp_param_config*, int);
 
-void Test(CSDA_Context, int, int);
+void TestCtrls(CSDA_Context, int, int);
 
-void TestCoeff(CSDA_Context, int, int);
+void TestCoeffs(CSDA_Context, int, int);
+
+void SetCoeffs(CSDA_Context, int, int, uint8_t*);
+
+void SetMuteUnmute(CSDA_Context CsdContext, unsigned int, unsigned int, int);
 
 #ifdef __cplusplus
 }  /* extern "C" */

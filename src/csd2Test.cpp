@@ -179,47 +179,15 @@ testCoeff tcoeff[MAX_COEFF_TEST] = {
 		"Setting Coeff to 0x7F",
 		MODULE_TAG_DATA_MODULE,
 		PARAM_ID_DATA_MODULE_COEFF,
+	},
+	{
+		"Setting Coeff to 0x55",
+		MODULE_TAG_CONTROL_MODULE,
+		PARAM_ID_CONTROL_MODULE_COEFF,
 	}
 };
 
-#if 0
-void initializeParamConfig(struct csd2_pp_param_config *param_cfg, int index) {
-
-	uint32_t param_payload = tconfig[index].gainValue;
-
-	printf(" param_payload is : 0x%x \n", param_payload);
-
-	struct csd2_key_value kvp[5] = {
-				{STREAMRX, PCM_DEEP_BUFFER},
-				{INSTANCE, INSTANCE_1},
-				{VMID, PVM},
-				{DEVICEPP_RX, DEVICEPP_RX_AUDIO_MBDRC},
-				{DEVICERX, MEDIA_SPKR}};
-
-	param_cfg->gkv.num_kvs = 5;
-
-	param_cfg->gkv.kv = kvp;
-
-	param_cfg->tag = tconfig[index].moduleTag;
-
-	printf(" param_cfg.tag is : 0x%x \n", param_cfg->tag);
-
-	param_cfg->is_persist = FALSE;
-
-	param_cfg->mode = CSD2_PP_CFG_MODE_TAGGED_PARAM;
-
-	// Parameter ID of the parameter whose value need to set
-	param_cfg->u.tagged_param.param_id = tconfig[index].paramId;
-	printf(" param_cfg.u.tagged_param.param_id is : 0x%x \n", param_cfg->u.tagged_param.param_id);
-
-	param_cfg->u.tagged_param.data = (&param_payload);
-
-	param_cfg->u.tagged_param.data_sz = sizeof(param_payload) + 4;
-}
-#endif
-
-
-void Test(CSDA_Context CsdContext, int index, int delay){
+void TestCtrls(CSDA_Context CsdContext, int index, int delay){
 
 	uint32_t value = 0;
 
@@ -293,11 +261,11 @@ void Test(CSDA_Context CsdContext, int index, int delay){
 	printf("\n\n********************** Test %d End *****************************\n\n", index);
 }
 
-void TestCoeff(CSDA_Context CsdContext, int index, int delay){
+void TestCoeffs(CSDA_Context CsdContext, int index, int delay){
 
 	uint32_t value = 0;
 	struct csd2_pp_param_config param_cfg = {0};
-#if 1
+
 	uint8_t* param_payload = 0;
 
 	param_payload = (uint8_t*)malloc(DATA_SIZE);
@@ -306,13 +274,19 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 		return;
 	}
 
-	memset(param_payload, 0x7F, DATA_SIZE);
-#else
-	uint32_t param_payload = 0x7F;
-#endif
+	switch(index) {
+        case 0:
+            memset(param_payload, 0x7F, DATA_SIZE);
+            break;
+        case 1:
+            memset(param_payload, 0x55, DATA_SIZE);
+            break;
+        default:
+            memset(param_payload, 0xAA, DATA_SIZE);
+	}
 
 	printf(" Configuration: %s\n", tcoeff[index].des);
-	//printf(" param_payload is : 0x%x \n", param_payload);
+	printf(" param_payload is : 0x%x \n", param_payload);
 
 	struct csd2_key_value kvp[5] = {
 				{STREAMRX, PCM_DEEP_BUFFER},
@@ -344,16 +318,16 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 	printf("\n\n********************** Test %d Start *****************************\n\n", index);
 
 	sleep(delay);
-
-	if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
-	{
-		printf(" Request csd2_ioctl PP_CONTROL_SET failed. %d\n", value);
-	}
-	else{
-		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_SET Successful.\n");
-		printf(" Set Param Value is : 0x%d \n", (int*)(param_cfg.u.tagged_param.data));
-	}
-
+    for (int idx = 0; idx < 100; idx++){
+		if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
+		{
+			printf(" Request csd2_ioctl PP_CONTROL_SET failed. %d\n", value);
+		}
+		else{
+			printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_SET Successful.\n");
+			printf(" Set Param Value is : 0x%d \n", (int*)(param_cfg.u.tagged_param.data));
+		}
+    }
 	sleep(delay);
 	param_cfg.u.tagged_param.data_sz = DATA_SIZE;
 
@@ -378,4 +352,94 @@ void TestCoeff(CSDA_Context CsdContext, int index, int delay){
 	printf("\n\n********************** Test %d End *****************************\n\n", index);
 
 	free(param_payload);
+}
+
+void SetCoeffs(CSDA_Context CsdContext, int index, int iter, uint8_t* param_payload){
+
+	uint32_t value = 0;
+	struct csd2_pp_param_config param_cfg = {0};
+
+	switch(index) {
+        case 0:
+            memset(param_payload, 0x7F, DATA_SIZE);
+            break;
+        case 1:
+            memset(param_payload, 0x55, DATA_SIZE);
+            break;
+        default:
+            memset(param_payload, 0xAA, DATA_SIZE);
+	}
+
+	struct csd2_key_value kvp[5] = {
+				{STREAMRX, PCM_DEEP_BUFFER},
+				{INSTANCE, INSTANCE_1},
+				{VMID, PVM},
+				{DEVICEPP_RX, DEVICEPP_RX_AUDIO_MBDRC},
+				{DEVICERX, MEDIA_SPKR}};
+
+	param_cfg.gkv.num_kvs = 5;
+
+	param_cfg.gkv.kv = kvp;
+
+	param_cfg.tag = tcoeff[index].moduleTag;
+
+	param_cfg.is_persist = FALSE;
+
+	param_cfg.mode = CSD2_PP_CFG_MODE_TAGGED_PARAM;
+
+	// Parameter ID of the parameter whose value need to set
+	param_cfg.u.tagged_param.param_id = tcoeff[index].paramId;
+
+	param_cfg.u.tagged_param.data = (void *)param_payload;
+
+	param_cfg.u.tagged_param.data_sz = DATA_SIZE;
+
+	for (int idx = 0; idx < iter; idx++){
+		if (CSD2_EOK != (value = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
+		{
+			printf(" Request csd2_ioctl PP_CONTROL_SET failed. %d\n", value);
+		}
+    }
+}
+
+void SetMuteUnmute(CSDA_Context CsdContext, unsigned int moduleTag, unsigned int paramId, int value){
+
+	uint32_t ret = 0;
+	printf("SetMuteUnmute I am here \n");
+
+	struct csd2_pp_param_config param_cfg = {0};
+
+	uint32_t param_payload = value;
+
+	struct csd2_key_value kvp[5] = {
+				{STREAMRX, PCM_DEEP_BUFFER},
+				{INSTANCE, INSTANCE_1},
+				{VMID, PVM},
+				{DEVICEPP_RX, DEVICEPP_RX_AUDIO_MBDRC},
+				{DEVICERX, MEDIA_SPKR}};
+
+	param_cfg.gkv.num_kvs = 5;
+
+	param_cfg.gkv.kv = kvp;
+
+	param_cfg.tag = MODULE_TAG_DATA_MODULE;
+
+	param_cfg.is_persist = FALSE;
+
+	param_cfg.mode = CSD2_PP_CFG_MODE_TAGGED_PARAM;
+
+	// Parameter ID of the parameter whose value need to set
+	param_cfg.u.tagged_param.param_id = PARAM_ID_DATA_MODULE_MUTE;
+
+	param_cfg.u.tagged_param.data = (void *)&param_payload;
+
+	param_cfg.u.tagged_param.data_sz = sizeof(param_payload) + 4;
+
+	if (CSD2_EOK != (ret = csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg))))
+	{
+		printf(" Request csd2_ioctl PP_CONTROL_SET failed. %d\n", ret);
+	}
+
+	printf("SetMuteUnmute bye bye \n");
+
 }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stddef.h>
+#include <time.h>
 
 #include "csd2_media_format.h"
 #include "csd2_status.h"
@@ -13,6 +14,9 @@
 #include "kvh2xml.h"
 #include "CSD2Test.h"
 #include "testConfig.h"
+
+uint8_t param_payload[2048] = {0};
+#define BILLION  1000000000L;
 
 int main(int argc, char *argv[]) {
 
@@ -26,30 +30,18 @@ int main(int argc, char *argv[]) {
 
 	uint32_t size = sizeof(opencfg);
 
-	uint32_t value = 0;
-
-	int32_t retVal, idx;
+	int32_t retVal;
 
 	CSDA_Context CsdContext{};
 
-#if 0
-	if (argc != 2) {
-		printf("Please provide exactly one integer argument.\n");
-		return 1;
-	}
-
-	int gain = atoi(argv[1]);
-	printf("The integer value entered is: %d\n", gain);
-#endif
-
-	if (CSD2_EOK != (value = csd2_init(&init_param)))
+	if (CSD2_EOK != (retVal = csd2_init(&init_param)))
 	{
-		printf(" csd2_init failed %d. \n", value);
+		printf(" csd2_init failed %d. \n", retVal);
 		retVal = -1;
 	}
-	else if (CSD2_EOK != (value = csd2_open(type, &opencfg, size, &(CsdContext.handle))))
+	else if (CSD2_EOK != (retVal = csd2_open(type, &opencfg, size, &(CsdContext.handle))))
 	{
-		printf(" csd2_open failed %d. \n", value);
+		printf(" csd2_open failed %d. \n", retVal);
 		retVal = -1;
 	}
 	else
@@ -57,72 +49,82 @@ int main(int argc, char *argv[]) {
 		printf(" csd2_open initialized Successfully.: %d \n", CsdContext.handle);
 	}
 
-
 #if 0
+	int32_t idx;
+    /**************************************************************
+		     Regression Testing (Ctrls and Coeffs)
+    **************************************************************/
 	for (idx = 0; idx < MAX_TEST; idx++){
-		Test(CsdContext, idx, 10);
+		TestCtrls(CsdContext, idx, 10);
 		printf ("\n\n\n");
+	}
+
+	for (idx = 0; idx < MAX_COEFF_TEST; idx++){
+	    TestCoeffs(CsdContext, idx, 10);
 	}
 #endif
 
-	TestCoeff(CsdContext, 0, 10);
+#if 0
+    struct timespec start, stop;
+
+    double accum;
+	/**************************************************************
+	     Latency measurement for 200K Coeff to Data CAPI module
+	**************************************************************/
+	if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
+	    perror( "clock gettime" );
+	    return EXIT_FAILURE;
+	}
+
+	SetCoeffs(CsdContext, 0, 10, 500, &param_payload[0]);
+
+	if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
+	    perror( "clock gettime" );
+	    return EXIT_FAILURE;
+	}
+
+	accum = ( stop.tv_sec - start.tv_sec )
+	             + (double)( stop.tv_nsec - start.tv_nsec )
+	               / (double)BILLION;
+	printf("start: %d\nstop: %d \nstart_nsec: %d \nstop_nsec:%d \n",
+			start.tv_sec, stop.tv_sec, start.tv_nsec, stop.tv_nsec);
+	printf( "Total Time: %lf\n", accum );
+#endif
 
 #if 0
-	struct csd2_key_value kvp[5] = {
-				{STREAMRX, PCM_DEEP_BUFFER},
-				{INSTANCE, INSTANCE_1},
-				{VMID, PVM},
-				{DEVICEPP_RX, DEVICEPP_RX_AUDIO_MBDRC},
-				{DEVICERX, MEDIA_SPKR}};
-
-	csd2_pp_param_config param_cfg = {0};
-
-	param_cfg.gkv.num_kvs = 5;
-
-	param_cfg.gkv.kv = kvp;
-
-	param_cfg.tag = 0xC0000020;
-
-	printf(" param_cfg.tag is : 0x%x \n", param_cfg.tag);
-
-	param_cfg.is_persist = FALSE;
-
-	param_cfg.mode = CSD2_PP_CFG_MODE_TAGGED_PARAM;
-
-	// Parameter ID of the parameter whose value need to set
-	param_cfg.u.tagged_param.param_id = 0x08001232;
-	printf(" param_cfg.u.tagged_param.param_id is : 0x%x \n", param_cfg.u.tagged_param.param_id);
-
-	param_cfg.u.tagged_param.data = &gain;
-
-	param_cfg.u.tagged_param.data_sz = sizeof(int) + 4;
-
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle, CSD2_CMD_PP_CONTROL_SET, &param_cfg, sizeof(param_cfg)))
-	{
-		printf(" Request csd2_ioctl PP_CONTROL_SET failed.\n");
-	}
-	else{
-		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_SET Successful.\n");
-		printf(" Set Param Value is : 0x%x \n", param_cfg.u.tagged_param.data);
+	/**************************************************************
+	   Latency measurement for 200K Coeff to Control CAPI module
+	**************************************************************/
+	if( clock_gettime( CLOCK_REALTIME, &start) == -1 ) {
+		perror( "clock gettime" );
+		return EXIT_FAILURE;
 	}
 
-	if (CSD2_EOK != csd2_ioctl(CsdContext.handle,
-								   CSD2_CMD_PP_CONTROL_GET,
-								   &param_cfg,
-								   sizeof(param_cfg)))
-	{
-		printf(" Request csd2_ioctl PP_CONTROL_GET failed.\n");
+	SetCoeffs(CsdContext, 1, 10, 500, &param_payload[0]);
+
+	if( clock_gettime( CLOCK_REALTIME, &stop) == -1 ) {
+		perror( "clock gettime" );
+		return EXIT_FAILURE;
 	}
-	else{
-		printf(" csd2_ioctl CSD2_CMD_PP_CONTROL_GET Successful.\n");
-		printf(" param_cfg.gkv.num_kvs is : %x \n", param_cfg.gkv.num_kvs);
-		printf(" param_cfg.tag is : %x \n", param_cfg.tag);
-		printf(" param_cfg.is_persist is : %x \n", param_cfg.is_persist);
-		printf(" param_cfg.mode is : %x \n", param_cfg.mode);
-		printf(" param_cfg.u.tagged_param.data is : %x \n", param_cfg.u.tagged_param.data);
-		printf(" param_cfg.u.tagged_param.param_id is : %x \n", param_cfg.u.tagged_param.param_id);
-		printf(" param_cfg.u.tagged_param.data_sz is : %x \n", param_cfg.u.tagged_param.data_sz);
-	}
+
+	accum = ( stop.tv_sec - start.tv_sec )
+				 + (double)( stop.tv_nsec - start.tv_nsec )
+				   / (double)BILLION;
+	printf("start: %d\nstop: %d \nstart_nsec: %d \nstop_nsec:%d \n",
+			start.tv_sec, stop.tv_sec, start.tv_nsec, stop.tv_nsec);
+	printf( "Total Time: %lf\n", accum );
+#endif
+
+#if 1
+	printf("*************** Mute Unmute Test ********************");
+	SetMuteUnmute(CsdContext, MODULE_TAG_DATA_MODULE, PARAM_ID_DATA_MODULE_MUTE, 1);
+
+	SetCoeffs(CsdContext, 1, 1, &param_payload[0]);
+	sleep(0.1);
+
+	SetMuteUnmute(CsdContext, MODULE_TAG_DATA_MODULE, PARAM_ID_DATA_MODULE_MUTE, 0);
+	printf("*************** Mute Unmute Test END ********************");
+
 #endif
 
 	csd2_close(CsdContext.handle);
